@@ -105,3 +105,10 @@ a {
     color-scheme: dark;
   }
 }
+
+button {
+  cursor: pointer;
+  background-color: transparent;
+  border: none;
+}
+

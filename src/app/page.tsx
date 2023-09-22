@@ -1,95 +1,74 @@
-import Image from 'next/image'
+'use client';
+import Image from 'next/image';
 import styles from './page.module.css'
+import { useRef, useState } from 'react'
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+type PayloadType = {
+  payload: string;
+  header: string;
+}
 
 export default function Home() {
+  const [ decodedJwt, setDecodedJwt ] = useState<PayloadType | null>();
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  
+  const handleClick = ():void => {
+    if(inputRef.current) {
+      try {
+        const [headerBase64, payloadBase64] = inputRef.current.value.split('.');
+        const decodedHeader =  JSON.parse(Buffer.from(headerBase64, 'base64').toString());
+        const decodedPayload = JSON.parse(Buffer.from(payloadBase64, 'base64').toString())
+
+        setDecodedJwt({
+          payload: decodedPayload,
+          header: decodedHeader
+        });
+      } catch(error) {
+        setDecodedJwt(null);
+        inputRef.current.value = '';
+        inputRef.current.classList.add('borda-vermelha');
+        toast.error("Something went wrong in jwt decode");
+      }
+    }
+  }
+
   return (
     <main className={styles.main}>
-      <div className={styles.description}>
-        <p>
-          Get started by editing&nbsp;
-          <code className={styles.code}>src/app/page.tsx</code>
-        </p>
+      <div className={styles.right_content}>
+        <h1>JWT decode</h1>
+        <textarea className={styles.textarea} ref={inputRef} name="" id="" cols={30} rows={10}></textarea>
         <div>
-          <a
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className={styles.vercelLogo}
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+          <button onClick={handleClick} className={styles.btn}>
+              Decode
+          </button>
         </div>
       </div>
-
-      <div className={styles.center}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className={styles.grid}>
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Docs <span>-&gt;</span>
-          </h2>
-          <p>Find in-depth information about Next.js features and API.</p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Learn <span>-&gt;</span>
-          </h2>
-          <p>Learn about Next.js in an interactive course with&nbsp;quizzes!</p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Templates <span>-&gt;</span>
-          </h2>
-          <p>Explore the Next.js 13 playground.</p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className={styles.card}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2>
-            Deploy <span>-&gt;</span>
-          </h2>
-          <p>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+      {
+        decodedJwt && (
+          <div className={styles.left_content}>
+            <div className={styles.decoded_content_item}>
+              <p className={styles.decoded_header}>Payload:</p>
+              <div className={styles.payload_container}>
+                <pre className={styles.pre}>
+                  {JSON.stringify(decodedJwt.payload, null, 2)}
+                </pre>
+              </div>
+            </div>
+            <div className={styles.decoded_content_item}>
+              <p className={styles.decoded_header}>Header:</p>
+              <div className={styles.payload_container}>
+                <pre className={styles.pre}>
+                  {JSON.stringify(decodedJwt.header, null, 2)}
+                </pre>
+              </div>
+            </div>
+          </div>
+        )
+      }
+      <ToastContainer theme='dark'/>
+      
     </main>
   )
 }
